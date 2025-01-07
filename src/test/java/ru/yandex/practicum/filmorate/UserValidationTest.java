@@ -23,6 +23,7 @@ class UserValidationTest {
         validator = factory.getValidator();
     }
 
+
     @Test
     void shouldFailValidationWhenEmailIsInvalid() {
         User user = new User();
