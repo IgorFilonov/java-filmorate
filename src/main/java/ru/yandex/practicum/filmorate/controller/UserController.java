@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 
 import jakarta.validation.Valid;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,20 +32,21 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
+    public ResponseEntity<?> updateUser(@Valid @RequestBody User user) {
         Optional<User> existingUser = users.stream()
                 .filter(u -> u.getId() == user.getId())
                 .findFirst();
 
         if (existingUser.isEmpty()) {
             log.warn("Пользователь с ID {} не найден для обновления", user.getId());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Пользователь с ID " + user.getId() + " не найден."); // Добавлено сообщение
         }
 
         users.remove(existingUser.get());
         users.add(user);
         log.info("Пользователь обновлён: {}", user);
-        return ResponseEntity.ok(user); // 200 OK
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping

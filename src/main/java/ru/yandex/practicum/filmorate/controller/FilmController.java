@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import jakarta.validation.Valid;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,20 +29,21 @@ public class FilmController {
     }
 
     @PutMapping
-    public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film film) {
+    public ResponseEntity<?> updateFilm(@Valid @RequestBody Film film) {
         Optional<Film> existingFilm = films.stream()
                 .filter(f -> f.getId() == film.getId())
                 .findFirst();
 
         if (existingFilm.isEmpty()) {
             log.warn("Фильм с ID {} не найден для обновления", film.getId());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404 Not Found
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Фильм с ID " + film.getId() + " не найден."); // Добавлено сообщение
         }
 
         films.remove(existingFilm.get());
         films.add(film);
         log.info("Фильм обновлён: {}", film);
-        return ResponseEntity.ok(film); // 200 OK
+        return ResponseEntity.ok(film);
     }
 
     @GetMapping
