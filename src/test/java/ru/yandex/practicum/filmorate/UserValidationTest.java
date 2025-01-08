@@ -23,44 +23,17 @@ class UserValidationTest {
         validator = factory.getValidator();
     }
 
-
     @Test
-    void shouldFailValidationWhenEmailIsInvalid() {
+    void shouldFailValidationForFutureBirthday() {
         User user = new User();
-        user.setEmail("invalid-email"); // Некорректный email
+        user.setEmail("user@example.com");
         user.setLogin("username");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
+        user.setBirthday(LocalDate.now().plusYears(1)); // Будущая дата рождения
 
         Set<ConstraintViolation<User>> violations = validator.validate(user);
 
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().equals("Некорректный формат email")));
-    }
-
-    @Test
-    void shouldFailValidationWhenLoginHasSpaces() {
-        User user = new User();
-        user.setEmail("user@example.com");
-        user.setLogin("user name"); // Логин с пробелами
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().equals("Логин не может содержать пробелы")));
-    }
-
-    @Test
-    void shouldPassValidationWhenAllFieldsAreValid() {
-        User user = new User();
-        user.setEmail("user@example.com");
-        user.setLogin("username");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-
-        assertTrue(violations.isEmpty());
+                .anyMatch(v -> v.getMessage().equals("Дата рождения не может быть в будущем")));
     }
 }

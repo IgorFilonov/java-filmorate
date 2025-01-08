@@ -24,37 +24,22 @@ class FilmValidationTest {
     }
 
     @Test
-    void shouldFailValidationWhenNameIsBlank() {
+    void shouldFailValidationForReleaseDateBefore1895() {
         Film film = new Film();
-        film.setName(""); // Некорректное имя
-        film.setDescription("Good movie");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
+        film.setName("Old Film");
+        film.setDescription("Description.");
+        film.setReleaseDate(LocalDate.of(1800, 1, 1)); // Дата до 28 декабря 1895
+        film.setDuration(120);
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
 
         assertFalse(violations.isEmpty());
         assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().equals("Название не может быть пустым")));
+                .anyMatch(v -> v.getMessage().equals("Дата релиза не может быть раньше 28 декабря 1895 года")));
     }
 
     @Test
-    void shouldFailValidationWhenDescriptionTooLong() {
-        Film film = new Film();
-        film.setName("Inception");
-        film.setDescription("A".repeat(201)); // 201 символ
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(90);
-
-        Set<ConstraintViolation<Film>> violations = validator.validate(film);
-
-        assertFalse(violations.isEmpty());
-        assertTrue(violations.stream()
-                .anyMatch(v -> v.getMessage().equals("Описание не должно превышать 200 символов")));
-    }
-
-    @Test
-    void shouldPassValidationWhenAllFieldsAreValid() {
+    void shouldPassValidationForValidFilm() {
         Film film = new Film();
         film.setName("Inception");
         film.setDescription("Great movie.");

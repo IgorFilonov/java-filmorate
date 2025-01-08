@@ -2,13 +2,15 @@ package ru.yandex.practicum.filmorate.controller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import jakarta.validation.Valid;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/films")
@@ -18,23 +20,33 @@ public class FilmController {
     private int currentId = 1;
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film film) {
+    public ResponseEntity<Film> addFilm(@Valid @RequestBody Film film) {
         film.setId(currentId++);
         films.add(film);
         log.info("Фильм добавлен: {}", film);
-        return film;
+        return ResponseEntity.status(HttpStatus.CREATED).body(film); // Возвращаем статус 201 Created
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) {
-        films.replaceAll(f -> f.getId() == film.getId() ? film : f);
+    public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film film) {
+        Optional<Film> existingFilm = films.stream()
+                .filter(f -> f.getId() == film.getId())
+                .findFirst();
+
+        if (existingFilm.isEmpty()) {
+            log.warn("Фильм с ID {} не найден для обновления", film.getId());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build(); // 404 Not Found
+        }
+
+        films.remove(existingFilm.get());
+        films.add(film);
         log.info("Фильм обновлён: {}", film);
-        return film;
+        return ResponseEntity.ok(film); // 200 OK
     }
 
     @GetMapping
-    public List<Film> getAllFilms() {
+    public ResponseEntity<List<Film>> getAllFilms() {
         log.info("Запрос всех фильмов");
-        return films;
+        return ResponseEntity.ok(films); // 200 OK
     }
 }
