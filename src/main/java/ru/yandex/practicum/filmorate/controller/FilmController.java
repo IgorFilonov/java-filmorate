@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -37,7 +38,7 @@ public class FilmController {
         if (existingFilm.isEmpty()) {
             log.warn("Фильм с ID {} не найден для обновления", film.getId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Фильм с ID " + film.getId() + " не найден."); // Добавлено сообщение
+                    .body(Map.of("error", "Фильм с ID " + film.getId() + " не найден."));
         }
 
         films.remove(existingFilm.get());

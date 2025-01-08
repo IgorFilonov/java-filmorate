@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -40,7 +41,7 @@ public class UserController {
         if (existingUser.isEmpty()) {
             log.warn("Пользователь с ID {} не найден для обновления", user.getId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("Пользователь с ID " + user.getId() + " не найден."); // Добавлено сообщение
+                    .body(Map.of("error", "Пользователь с ID " + user.getId() + " не найден."));
         }
 
         users.remove(existingUser.get());
