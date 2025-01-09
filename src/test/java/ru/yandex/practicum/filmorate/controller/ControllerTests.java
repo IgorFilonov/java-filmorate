@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -14,6 +15,7 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -58,6 +60,55 @@ class ControllerTests {
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> userService.getUserById(999));
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Пользователь не найден"));
+    }
+
+    @Test
+    void addUser_ShouldReturn400_WhenInvalidRequest() {
+        User user = new User();
+        user.setEmail(""); // Некорректный email
+        user.setLogin(""); // Некорректный логин
+
+        when(userService.addUser(Mockito.any(User.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректные данные"));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> userService.addUser(user));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Некорректные данные"));
+    }
+
+    @Test
+    void getPopularFilms_ShouldReturnEmptyList_WhenNoFilms() {
+        when(filmService.getPopularFilms(10)).thenReturn(Collections.emptyList());
+
+        List<Film> response = filmController.getPopularFilms(10);
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+    }
+
+    @Test
+    void addLike_ShouldThrow400_WhenInvalidIds() {
+        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректный идентификатор"))
+                .when(filmService).addLike(-1, 1);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> filmController.addLike(-1, 1));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Некорректный идентификатор"));
+    }
+
+    @Test
+    void removeFriend_ShouldThrow404_WhenUserNotFound() {
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"))
+                .when(userService).removeFriend(1, 2);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> userController.removeFriend(1, 2));
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertTrue(exception.getReason().contains("Пользователь не найден"));
