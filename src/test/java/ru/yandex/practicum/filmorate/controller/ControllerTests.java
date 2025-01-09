@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -45,17 +46,21 @@ class ControllerTests {
         when(userService.addUser(Mockito.any(User.class))).thenReturn(user);
 
         ResponseEntity<User> response = userController.addUser(user);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode()); // Изменено на CREATED
+        assertEquals(HttpStatus.CREATED, response.getStatusCode()); // Ожидаем статус 201 Created
         assertNotNull(response.getBody());
         assertEquals(user.getId(), response.getBody().getId());
     }
 
     @Test
     void getUserById_ShouldReturn404_WhenUserNotFound() {
-        when(userService.getUserById(1)).thenThrow(new IllegalArgumentException("User not found"));
+        when(userService.getUserById(Mockito.anyInt()))
+                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> userController.getUserById(1));
-        assertEquals("User not found", exception.getMessage());
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> userService.getUserById(999));
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Пользователь не найден"));
     }
 
     @Test

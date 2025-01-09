@@ -38,6 +38,9 @@ public class UserService {
 
     // Получение пользователя по ID
     public User getUserById(int id) {
+        if (id <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID пользователя должен быть положительным");
+        }
         return userStorage.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с ID " + id + " не найден"));
     }

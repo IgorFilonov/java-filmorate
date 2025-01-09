@@ -31,8 +31,11 @@ public class FilmService {
     }
 
     public void addLike(int filmId, int userId) {
+        if (filmId <= 0 || userId <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID фильма или пользователя должен быть положительным");
+        }
         Film film = filmStorage.findById(filmId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Фильм с ID " + filmId + " не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Фильм не найден"));
         film.getLikes().add(userId);
     }
 
