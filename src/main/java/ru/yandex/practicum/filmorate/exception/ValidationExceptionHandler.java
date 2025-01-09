@@ -23,8 +23,10 @@ public class ValidationExceptionHandler {
     }
 
     // Обработка ошибок IllegalArgumentException для возврата 404
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleExceptions(Exception ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }

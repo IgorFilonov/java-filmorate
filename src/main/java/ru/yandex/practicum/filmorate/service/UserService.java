@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -37,7 +39,7 @@ public class UserService {
     // Получение пользователя по ID
     public User getUserById(int id) {
         return userStorage.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с ID " + id + " не найден"));
     }
 
     // Добавление друга

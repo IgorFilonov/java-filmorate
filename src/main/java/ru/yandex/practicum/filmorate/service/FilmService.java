@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 
@@ -30,8 +32,8 @@ public class FilmService {
 
     public void addLike(int filmId, int userId) {
         Film film = filmStorage.findById(filmId)
-                .orElseThrow(() -> new IllegalArgumentException("Фильм не найден"));
-        film.getLikes().add(userId); // Уникальные лайки благодаря Set
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Фильм с ID " + filmId + " не найден"));
+        film.getLikes().add(userId);
     }
 
     public void removeLike(int filmId, int userId) {
