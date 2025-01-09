@@ -30,6 +30,7 @@ public class ValidationExceptionHandler {
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, String>> handleResponseStatusException(ResponseStatusException ex) {
         Map<String, String> error = new HashMap<>();
