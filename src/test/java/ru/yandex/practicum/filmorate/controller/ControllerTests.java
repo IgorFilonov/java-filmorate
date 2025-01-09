@@ -53,12 +53,12 @@ class ControllerTests {
     }
 
     @Test
-    void getUserById_ShouldReturn404_WhenUserNotFound() {
-        when(userService.getUserById(Mockito.anyInt()))
-                .thenThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+    void addLike_ShouldThrow404_WhenUserNotFound() {
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"))
+                .when(filmService).addLike(1, 999); // ID пользователя несуществующий
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> userService.getUserById(999));
+                () -> filmController.addLike(1, 999));
 
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertTrue(exception.getReason().contains("Пользователь не найден"));
