@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
@@ -14,7 +13,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -34,7 +32,6 @@ class ControllerTests {
         filmController = new FilmController(filmService);
     }
 
-    // Test for UserController
     @Test
     void addUser_ShouldReturnUser_WhenValidRequest() {
         User user = new User();
@@ -46,16 +43,15 @@ class ControllerTests {
 
         when(userService.addUser(Mockito.any(User.class))).thenReturn(user);
 
-        ResponseEntity<User> response = userController.addUser(user);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode()); // Ожидаем статус 201 Created
-        assertNotNull(response.getBody());
-        assertEquals(user.getId(), response.getBody().getId());
+        User response = userController.addUser(user);
+        assertNotNull(response);
+        assertEquals(user.getId(), response.getId());
     }
 
     @Test
     void addLike_ShouldThrow404_WhenUserNotFound() {
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"))
-                .when(filmService).addLike(1, 999); // ID пользователя несуществующий
+                .when(filmService).addLike(1, 999);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> filmController.addLike(1, 999));
@@ -65,7 +61,7 @@ class ControllerTests {
     }
 
     @Test
-    void addUser_ShouldReturn400_WhenInvalidRequest() {
+    void addUser_ShouldThrow400_WhenInvalidRequest() {
         User user = new User();
         user.setEmail(""); // Некорректный email
         user.setLogin(""); // Некорректный логин
@@ -74,7 +70,7 @@ class ControllerTests {
                 .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректные данные"));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
-                () -> userService.addUser(user));
+                () -> userController.addUser(user));
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
         assertTrue(exception.getReason().contains("Некорректные данные"));
@@ -124,18 +120,16 @@ class ControllerTests {
 
         when(userService.updateUser(Mockito.any(User.class))).thenReturn(user);
 
-        ResponseEntity<User> response = userController.updateUser(user);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("updated@test.com", response.getBody().getEmail());
+        User response = userController.updateUser(user);
+        assertNotNull(response);
+        assertEquals("updated@test.com", response.getEmail());
     }
 
     @Test
     void addFriend_ShouldAddFriendSuccessfully() {
         doNothing().when(userService).addFriend(1, 2);
 
-        ResponseEntity<Void> response = userController.addFriend(1, 2);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        userController.addFriend(1, 2);
         verify(userService, times(1)).addFriend(1, 2);
     }
 
@@ -143,12 +137,10 @@ class ControllerTests {
     void removeFriend_ShouldRemoveFriendSuccessfully() {
         doNothing().when(userService).removeFriend(1, 2);
 
-        ResponseEntity<Void> response = userController.removeFriend(1, 2);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        userController.removeFriend(1, 2);
         verify(userService, times(1)).removeFriend(1, 2);
     }
 
-    // Test for FilmController
     @Test
     void addFilm_ShouldReturnFilm_WhenValidRequest() {
         Film film = new Film();
@@ -201,7 +193,7 @@ class ControllerTests {
     @Test
     void addLike_ShouldThrow404_WhenFilmNotFound() {
         doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Фильм не найден"))
-                .when(filmService).addLike(999, 1); // Несуществующий фильм
+                .when(filmService).addLike(999, 1);
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class,
                 () -> filmController.addLike(999, 1));
@@ -237,3 +229,4 @@ class ControllerTests {
         assertTrue(response.isEmpty());
     }
 }
+
