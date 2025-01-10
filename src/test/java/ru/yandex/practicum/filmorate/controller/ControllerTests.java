@@ -197,4 +197,43 @@ class ControllerTests {
         filmController.removeLike(1, 1);
         verify(filmService, times(1)).removeLike(1, 1);
     }
+
+    @Test
+    void addLike_ShouldThrow404_WhenFilmNotFound() {
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Фильм не найден"))
+                .when(filmService).addLike(999, 1); // Несуществующий фильм
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> filmController.addLike(999, 1));
+
+        assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Фильм не найден"));
+    }
+
+    @Test
+    void addUser_ShouldThrow400_WhenEmailIsInvalid() {
+        User invalidUser = new User();
+        invalidUser.setEmail("invalid-email"); // Невалидный email
+        invalidUser.setLogin("validLogin");
+        invalidUser.setBirthday(LocalDate.of(1990, 1, 1));
+
+        when(userService.addUser(Mockito.any(User.class)))
+                .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректный email"));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class,
+                () -> userController.addUser(invalidUser));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Некорректный email"));
+    }
+
+    @Test
+    void getPopularFilms_ShouldReturnEmptyList_WhenNoFilmsExist() {
+        when(filmService.getPopularFilms(10)).thenReturn(Collections.emptyList());
+
+        List<Film> response = filmController.getPopularFilms(10);
+
+        assertNotNull(response);
+        assertTrue(response.isEmpty());
+    }
 }
