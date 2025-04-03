@@ -30,6 +30,14 @@ CREATE TABLE IF NOT EXISTS films (
     FOREIGN KEY (mpa_id) REFERENCES mpa(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS friends (
+    user_id INT,
+    friend_id INT,
+    PRIMARY KEY (user_id, friend_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Таблица связей фильмов и жанров (многие ко многим)
 CREATE TABLE IF NOT EXISTS film_genres (
     film_id INT,

@@ -48,9 +48,9 @@ public class UserService {
     // Добавление друга
     public void addFriend(int userId, int friendId) {
         User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
         User friend = userStorage.findById(friendId)
-                .orElseThrow(() -> new IllegalArgumentException("Друг не найден"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
 
         user.getFriends().add(friendId);
         friend.getFriends().add(userId);
