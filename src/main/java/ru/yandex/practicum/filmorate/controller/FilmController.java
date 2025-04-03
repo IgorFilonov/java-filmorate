@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/films")
 public class FilmController {
+
     private final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final FilmService filmService;
 
