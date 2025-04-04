@@ -19,7 +19,6 @@ class FilmControllerIntegrationTest {
     private TestRestTemplate restTemplate;
 
 
-
     @Test
     void shouldReturnBadRequestForInvalidFilm() {
         Film film = new Film();
@@ -47,6 +46,7 @@ class FilmControllerIntegrationTest {
         assertEquals(400, response.getStatusCodeValue()); // 400 Bad Request
         assertTrue(response.getBody().contains("Дата релиза не может быть раньше 28 декабря 1895 года"));
     }
+
     @Test
     public void testFilmFields() {
         // Запрос на добавление фильма
