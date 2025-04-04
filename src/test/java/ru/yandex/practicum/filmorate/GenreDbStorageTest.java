@@ -43,4 +43,6 @@ public class GenreDbStorageTest {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList("SELECT * FROM genres");
         System.out.println("Содержимое genres: " + rows);
     }
+
+
 }

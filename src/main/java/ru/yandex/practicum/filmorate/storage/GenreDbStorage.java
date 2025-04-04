@@ -17,21 +17,16 @@ public class GenreDbStorage {
     private final JdbcTemplate jdbcTemplate;
 
     public List<Genre> getAllGenres() {
-        String sql = "SELECT * FROM genres";
+        String sql = "SELECT * FROM genres ORDER BY id";
         return jdbcTemplate.query(sql, this::mapRowToGenre);
     }
 
     public Optional<Genre> getGenreById(int id) {
         String sql = "SELECT * FROM genres WHERE id = ?";
-        return jdbcTemplate.query(sql, new GenreMapper(), id)
+        return jdbcTemplate.query(sql, this::mapRowToGenre, id)
                 .stream().findFirst();
     }
 
-    public Optional<Genre> findGenreById(int id) {
-        String sql = "SELECT * FROM genres WHERE id = ?";
-        List<Genre> genres = jdbcTemplate.query(sql, this::mapRowToGenre, id);
-        return genres.stream().findFirst();
-    }
 
     private Genre mapRowToGenre(ResultSet rs, int rowNum) throws SQLException {
         return new Genre(rs.getInt("id"), rs.getString("name"));

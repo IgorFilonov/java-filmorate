@@ -13,6 +13,7 @@ import java.util.*;
 public class UserService {
     private final UserStorage userStorage;
 
+
     @Autowired
     public UserService(UserStorage userStorage) {
         this.userStorage = userStorage;
@@ -25,9 +26,8 @@ public class UserService {
 
     // Обновление существующего пользователя
     public User updateUser(User user) {
-        if (!userStorage.findById(user.getId()).isPresent()) {
-            throw new IllegalArgumentException("Пользователь с ID " + user.getId() + " не найден");
-        }
+        userStorage.findById(user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
         return userStorage.update(user);
     }
 
@@ -45,53 +45,45 @@ public class UserService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с ID " + id + " не найден"));
     }
 
-    // Добавление друга
+    // Добавление друга (односторонняя дружба)
     public void addFriend(int userId, int friendId) {
-        User user = userStorage.findById(userId)
+        if (userId == friendId) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Нельзя добавить себя в друзья");
+        }
+
+        // Проверка на существование обоих пользователей
+        userStorage.findById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
-        User friend = userStorage.findById(friendId)
+        userStorage.findById(friendId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
 
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        userStorage.addFriend(userId, friendId);
     }
 
-    // Удаление друга
+    // Удаление друга (односторонняя модель)
     public void removeFriend(int userId, int friendId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-        User friend = userStorage.findById(friendId)
-                .orElseThrow(() -> new IllegalArgumentException("Друг не найден"));
+        userStorage.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
 
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
+        userStorage.removeFriend(userId, friendId);
     }
 
     // Получение списка друзей пользователя
     public List<User> getFriends(int userId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
-        List<User> friends = new ArrayList<>();
-        for (Integer friendId : user.getFriends()) {
-            userStorage.findById(friendId).ifPresent(friends::add);
-        }
-        return friends;
+        userStorage.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        return userStorage.getFriends(userId);
     }
 
     // Получение списка общих друзей между двумя пользователями
     public List<User> getMutualFriends(int userId, int otherId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-        User other = userStorage.findById(otherId)
-                .orElseThrow(() -> new IllegalArgumentException("Друг не найден"));
+        userStorage.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        userStorage.findById(otherId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
 
-        Set<Integer> mutualFriends = new HashSet<>(user.getFriends());
-        mutualFriends.retainAll(other.getFriends());
-
-        List<User> result = new ArrayList<>();
-        for (Integer id : mutualFriends) {
-            userStorage.findById(id).ifPresent(result::add);
-        }
-        return result;
+        return userStorage.getCommonFriends(userId, otherId);
     }
 }
