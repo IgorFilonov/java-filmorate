@@ -15,4 +15,13 @@ public interface UserStorage {
     Optional<User> findById(int id); // Поиск пользователя по ID
 
     List<User> findAll(); // Получение всех пользователей
+
+    // 👇 Методы для работы с друзьями
+    void addFriend(int userId, int friendId);
+
+    void removeFriend(int userId, int friendId);
+
+    List<User> getFriends(int userId);
+
+    List<User> getCommonFriends(int userId, int otherUserId);
 }
