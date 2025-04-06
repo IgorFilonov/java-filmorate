@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,6 @@ public class MpaService {
 
     public Mpa getMpaById(int id) {
         return mpaDbStorage.findMpaById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "MPA рейтинг не найден"));
+                .orElseThrow(() -> new NotFoundException("MPA рейтинг с ID " + id + " не найден"));
     }
 }

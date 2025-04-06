@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -12,7 +14,6 @@ import java.util.*;
 @Service
 public class UserService {
     private final UserStorage userStorage;
-
 
     @Autowired
     public UserService(UserStorage userStorage) {
@@ -27,7 +28,7 @@ public class UserService {
     // Обновление существующего пользователя
     public User updateUser(User user) {
         userStorage.findById(user.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return userStorage.update(user);
     }
 
@@ -39,23 +40,23 @@ public class UserService {
     // Получение пользователя по ID
     public User getUserById(int id) {
         if (id <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID пользователя должен быть положительным");
+            throw new BadRequestException("ID пользователя должен быть положительным");
         }
         return userStorage.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
     // Добавление друга (односторонняя дружба)
     public void addFriend(int userId, int friendId) {
         if (userId == friendId) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Нельзя добавить себя в друзья");
+            throw new BadRequestException("Нельзя добавить себя в друзья");
         }
 
         // Проверка на существование обоих пользователей
         userStorage.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userStorage.findById(friendId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
+                .orElseThrow(() -> new NotFoundException("Друг не найден"));
 
         userStorage.addFriend(userId, friendId);
     }
@@ -63,9 +64,9 @@ public class UserService {
     // Удаление друга (односторонняя модель)
     public void removeFriend(int userId, int friendId) {
         userStorage.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userStorage.findById(friendId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
+                .orElseThrow(() -> new NotFoundException("Друг не найден"));
 
         userStorage.removeFriend(userId, friendId);
     }
@@ -73,16 +74,16 @@ public class UserService {
     // Получение списка друзей пользователя
     public List<User> getFriends(int userId) {
         userStorage.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return userStorage.getFriends(userId);
     }
 
     // Получение списка общих друзей между двумя пользователями
     public List<User> getMutualFriends(int userId, int otherId) {
         userStorage.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userStorage.findById(otherId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Друг не найден"));
+                .orElseThrow(() -> new NotFoundException("Друг не найден"));
 
         return userStorage.getCommonFriends(userId, otherId);
     }

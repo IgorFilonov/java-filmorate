@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -72,12 +73,18 @@ public class UserDbStorage implements UserStorage {
     @Override
     public User update(User user) {
         String sql = "UPDATE users SET email = ?, login = ?, name = ?, birthday = ? WHERE id = ?";
-        int updatedRows = jdbcTemplate.update(sql, user.getEmail(), user.getLogin(), user.getName(),
-                Date.valueOf(user.getBirthday()), user.getId());
+        int updatedRows = jdbcTemplate.update(sql,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                Date.valueOf(user.getBirthday()),
+                user.getId()
+        );
 
         if (updatedRows == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден");
+            throw new NotFoundException("Пользователь не найден: id=" + user.getId());
         }
+
         return user;
     }
 
@@ -91,7 +98,7 @@ public class UserDbStorage implements UserStorage {
         int deletedRows = jdbcTemplate.update(deleteUserSql, id);
 
         if (deletedRows == 0) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден");
+            throw new NotFoundException("Пользователь не найден: id=" + id);
         }
     }
 
@@ -146,5 +153,10 @@ public class UserDbStorage implements UserStorage {
             user.setBirthday(rs.getDate("birthday").toLocalDate());
             return user;
         }
+    }
+
+    public User requireById(int id) {
+        return findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден: id=" + id));
     }
 }
