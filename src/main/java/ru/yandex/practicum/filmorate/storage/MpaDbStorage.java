@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import lombok.RequiredArgsConstructor;
