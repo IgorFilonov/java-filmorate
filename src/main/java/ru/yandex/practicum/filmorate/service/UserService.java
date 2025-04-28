@@ -1,9 +1,11 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import ru.yandex.practicum.filmorate.exception.BadRequestException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -25,9 +27,8 @@ public class UserService {
 
     // Обновление существующего пользователя
     public User updateUser(User user) {
-        if (!userStorage.findById(user.getId()).isPresent()) {
-            throw new IllegalArgumentException("Пользователь с ID " + user.getId() + " не найден");
-        }
+        userStorage.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         return userStorage.update(user);
     }
 
@@ -39,59 +40,51 @@ public class UserService {
     // Получение пользователя по ID
     public User getUserById(int id) {
         if (id <= 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID пользователя должен быть положительным");
+            throw new BadRequestException("ID пользователя должен быть положительным");
         }
         return userStorage.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с ID " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException("Пользователь с ID " + id + " не найден"));
     }
 
-    // Добавление друга
+    // Добавление друга (односторонняя дружба)
     public void addFriend(int userId, int friendId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-        User friend = userStorage.findById(friendId)
-                .orElseThrow(() -> new IllegalArgumentException("Друг не найден"));
+        if (userId == friendId) {
+            throw new BadRequestException("Нельзя добавить себя в друзья");
+        }
 
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        // Проверка на существование обоих пользователей
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("Друг не найден"));
+
+        userStorage.addFriend(userId, friendId);
     }
 
-    // Удаление друга
+    // Удаление друга (односторонняя модель)
     public void removeFriend(int userId, int friendId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-        User friend = userStorage.findById(friendId)
-                .orElseThrow(() -> new IllegalArgumentException("Друг не найден"));
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("Друг не найден"));
 
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
+        userStorage.removeFriend(userId, friendId);
     }
 
     // Получение списка друзей пользователя
     public List<User> getFriends(int userId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь с ID " + userId + " не найден"));
-        List<User> friends = new ArrayList<>();
-        for (Integer friendId : user.getFriends()) {
-            userStorage.findById(friendId).ifPresent(friends::add);
-        }
-        return friends;
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        return userStorage.getFriends(userId);
     }
 
     // Получение списка общих друзей между двумя пользователями
     public List<User> getMutualFriends(int userId, int otherId) {
-        User user = userStorage.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
-        User other = userStorage.findById(otherId)
-                .orElseThrow(() -> new IllegalArgumentException("Друг не найден"));
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        userStorage.findById(otherId)
+                .orElseThrow(() -> new NotFoundException("Друг не найден"));
 
-        Set<Integer> mutualFriends = new HashSet<>(user.getFriends());
-        mutualFriends.retainAll(other.getFriends());
-
-        List<User> result = new ArrayList<>();
-        for (Integer id : mutualFriends) {
-            userStorage.findById(id).ifPresent(result::add);
-        }
-        return result;
+        return userStorage.getCommonFriends(userId, otherId);
     }
 }
